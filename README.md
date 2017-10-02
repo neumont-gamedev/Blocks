@@ -14,5 +14,5 @@ The intention is to have the student focus on the presentation of the game. Thes
   * Trails
   * Screenshake
   * Material Effects
-    * Flashing
+    * Color Swap
     * UV Scroll
