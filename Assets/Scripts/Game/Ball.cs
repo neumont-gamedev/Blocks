@@ -6,7 +6,6 @@ using System;
 public class Ball : FiniteStateMachine
 {
     [SerializeField][Range(0.0f, 10.0f)] float m_speed = 5.0f;
-    [SerializeField][Range(0.0f, 5.0f)] float m_radius = 1.0f;
 
     public enum eState
     {
@@ -16,10 +15,10 @@ public class Ball : FiniteStateMachine
         HIT
     }
 
+    Rigidbody m_rigidbody = null;
     Ray m_ray = new Ray(Vector3.zero, Vector3.zero);
 
     public Vector3 direction { get; set; }
-    public float timeScale { get; set; }
     
     void Awake()
     {
@@ -31,19 +30,19 @@ public class Ball : FiniteStateMachine
 
         direction = new Vector3(0.5f, -0.5f, 0.0f);
         direction.Normalize();
-        timeScale = 1.0f;
     }
 
 	void Start()
     {
-		//
-	}
+        m_rigidbody = GetComponent<Rigidbody>();
+        m_rigidbody.AddForce(direction * (m_speed * 100.0f));
+    }
 
     public void Create(Vector3 position, Vector3 direction)
     {
         transform.position = position;
         this.direction = direction;
-
+        
         SetState(eState.ENTER);
     }
 
@@ -52,30 +51,11 @@ public class Ball : FiniteStateMachine
         SetState(eState.ACTIVE);
     }
 
-    private void UpdateACTIVE()
+    private void OnCollisionEnter(Collision collision)
     {
-        float distance = m_speed * Time.deltaTime;
-        Vector3 velocity = (direction * distance);
-
-        m_ray.origin = transform.position;
-        m_ray.direction = direction;
-        RaycastHit rayHit;
-
-        if (Physics.Raycast(m_ray, out rayHit))
+        if (collision.gameObject.CompareTag("Ball"))
         {
-            if (rayHit.distance < distance + m_radius)
-            {
-                direction = Vector3.Reflect(direction, rayHit.normal);
-                transform.position = rayHit.point + (direction * (distance - rayHit.distance));
-            }
-            else
-            {
-                transform.position = transform.position + velocity;
-            }
-        }
-        else
-        {
-            transform.position = transform.position + velocity;
+            print("ball hit");
         }
     }
 }

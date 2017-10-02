@@ -32,9 +32,14 @@ public class Blocks : MonoBehaviour
                 position.z = 0.0f;
 
                 Block block = Instantiate(m_block, position, Quaternion.identity, this.transform);
-                block.Create(position, Block.eType.STANDARD);
+                block.Create(position, Block.eType.STANDARD, this);
                 m_blocks.Add(block);
             }
         }
+    }
+
+    public void RemoveBlock(Block block)
+    {
+        m_blocks.Remove(block);
     }
 }
