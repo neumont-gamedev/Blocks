@@ -72,8 +72,8 @@ public class Block : FiniteStateMachine
     {
         m_timer = m_timer - Time.deltaTime;
         m_timer = Mathf.Max(m_timer, 0.0f);
-        //float interp = Interpolation.BounceOut(1.0f - (m_timer / m_enterTime));
-        float interp = 1.0f - (m_timer / m_enterTime);
+        float interp = Interpolation.BounceOut(1.0f - (m_timer / m_enterTime));
+        //float interp = 1.0f - (m_timer / m_enterTime);
         transform.position = Vector3.LerpUnclamped(m_startPosition, m_position, interp);
         
         if (m_timer == 0.0f)
