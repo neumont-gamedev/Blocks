@@ -8,8 +8,8 @@ public class Blocks : MonoBehaviour
     [SerializeField] [Range(1, 40)] int m_numRows = 5;
     [SerializeField] Transform m_sizeMin = null;
     [SerializeField] Transform m_sizeMax = null;
-    [SerializeField] Block m_block = null;
-
+    [SerializeField] ObjectPool m_objectPool = null;
+    
     List<Block> m_blocks = new List<Block>();
 
     public void CreateBlocks(string pattern)
@@ -31,8 +31,11 @@ public class Blocks : MonoBehaviour
                 position.y = sy + (dy * j);
                 position.z = 0.0f;
 
-                Block block = Instantiate(m_block, position, Quaternion.identity, this.transform);
-                block.Create(position, Block.eType.STANDARD, this);
+                GameObject gameObject = m_objectPool.GetObject();
+                gameObject.transform.parent = transform;
+                Block block = gameObject.GetComponent<Block>();
+                block.Initialize(position, Block.eType.STANDARD, this);
+                
                 m_blocks.Add(block);
             }
         }
@@ -41,5 +44,6 @@ public class Blocks : MonoBehaviour
     public void RemoveBlock(Block block)
     {
         m_blocks.Remove(block);
+        m_objectPool.ReturnObject(block.gameObject);
     }
 }

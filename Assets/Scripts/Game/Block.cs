@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Block : FiniteStateMachine
 {
+    [SerializeField] [Range(50, 5000)] int m_points = 100;
     [SerializeField] [Range(0.1f, 5.0f)] float m_enterTime = 1.0f;
     [SerializeField] [Range(0.1f, 1.0f)] float m_hitTime = 0.2f;
 
@@ -26,9 +27,9 @@ public class Block : FiniteStateMachine
 
     eType m_type;
     float m_timer;
-    Vector3 m_positionStart;
+    Vector3 m_startPosition;
     Vector3 m_position;
-    Vector3 m_scaleStart;
+    Vector3 m_startScale;
 
     void Awake()
     {
@@ -44,26 +45,26 @@ public class Block : FiniteStateMachine
         m_collider = GetComponent<Collider>();
     }
 
-    public void Create(Vector3 position, eType type, Blocks blocks)
+    public void Initialize(Vector3 position, eType type, Blocks owner)
     {
         m_type = type;
 
         m_position = position;
-        m_positionStart.x = m_position.x;
-        m_positionStart.y = m_position.y + 10.0f;
-        m_positionStart.z = m_position.z;
-        transform.position = m_positionStart;
+        m_startPosition.x = m_position.x;
+        m_startPosition.y = m_position.y + 10.0f;
+        m_startPosition.z = m_position.z;
+        transform.position = m_startPosition;
 
-        m_scaleStart = transform.localScale;
+        m_startScale = transform.localScale;
 
-        m_owner = blocks;
+        m_owner = owner;
 
         SetState(eState.ENTER);
     }
 
     private void EnterENTER(Enum previousState)
     {
-        transform.position = m_positionStart;
+        transform.position = m_startPosition;
         m_timer = m_enterTime;
     }
 
@@ -73,7 +74,7 @@ public class Block : FiniteStateMachine
         m_timer = Mathf.Max(m_timer, 0.0f);
         //float interp = Interpolation.BounceOut(1.0f - (m_timer / m_enterTime));
         float interp = 1.0f - (m_timer / m_enterTime);
-        transform.position = Vector3.LerpUnclamped(m_positionStart, m_position, interp);
+        transform.position = Vector3.LerpUnclamped(m_startPosition, m_position, interp);
         
         if (m_timer == 0.0f)
         {
@@ -84,31 +85,26 @@ public class Block : FiniteStateMachine
     private void EnterHIT(Enum previousState)
     {
         m_collider.enabled = false;
-        m_owner.RemoveBlock(this);
-
-        m_timer = m_hitTime;
+        Game.instance.AddPoints(transform.position, m_points);
         StartCoroutine(HitCoroutine());
-    }
-
-    private void UpdateHIT()
-    {
-        //
     }
 
     IEnumerator HitCoroutine()
     {
         GetComponent<AudioSource>().Play();
+        m_timer = m_hitTime;
         while (m_timer > 0.0f)
         {
             m_timer = m_timer - Time.deltaTime;
             m_timer = Mathf.Max(m_timer, 0.0f);
             //float interp = Interpolation.BackIn(1.0f - (m_timer / m_hitTime));
             float interp = 1.0f - (m_timer / m_hitTime);
-            transform.localScale = Vector3.LerpUnclamped(m_scaleStart, Vector3.zero, interp);
+            transform.localScale = Vector3.LerpUnclamped(m_startScale, Vector3.zero, interp);
                         
             yield return null;
         }
-        
+        m_owner.RemoveBlock(this);
+
         SetState(eState.INACTIVE);
     }
 

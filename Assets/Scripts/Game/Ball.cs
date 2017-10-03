@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
 
 public class Ball : FiniteStateMachine
 {
@@ -15,11 +14,17 @@ public class Ball : FiniteStateMachine
         HIT
     }
 
-    Rigidbody m_rigidbody = null;
-    Ray m_ray = new Ray(Vector3.zero, Vector3.zero);
+    public enum eType
+    {
+        STANDARD
+    }
 
-    public Vector3 direction { get; set; }
-    
+    Rigidbody m_rigidbody = null;
+    AudioSource m_audioSource = null;
+    Balls m_owner = null;
+
+    eType m_type = eType.STANDARD;
+        
     void Awake()
     {
         InitializeStateMachine<eState>(eState.INACTIVE, true);
@@ -27,22 +32,25 @@ public class Ball : FiniteStateMachine
         AddTransitionsToState(eState.ENTER, new System.Enum[] { eState.ACTIVE });
         AddTransitionsToState(eState.ACTIVE, new System.Enum[] { eState.HIT, eState.ENTER });
         AddTransitionsToState(eState.HIT, new System.Enum[] { eState.INACTIVE });
-
-        direction = new Vector3(0.5f, -0.5f, 0.0f);
-        direction.Normalize();
     }
 
 	void Start()
     {
         m_rigidbody = GetComponent<Rigidbody>();
-        m_rigidbody.AddForce(direction * (m_speed * 100.0f));
+        m_audioSource = GetComponent<AudioSource>();
     }
 
-    public void Create(Vector3 position, Vector3 direction)
+    public void Initialize(Vector3 position, Vector3 direction, eType type, Balls owner)
     {
         transform.position = position;
-        this.direction = direction;
-        
+        if (m_rigidbody == null)
+        {
+            m_rigidbody = GetComponent<Rigidbody>();
+        }
+        m_rigidbody.AddForce(direction * (m_speed * 100.0f));
+        m_type = type;
+        m_owner = owner;
+                
         SetState(eState.ENTER);
     }
 
@@ -53,9 +61,10 @@ public class Ball : FiniteStateMachine
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Ball"))
-        {
-            print("ball hit");
-        }
+        m_audioSource.Play();
+
+        // randomize bounce
+        Quaternion qr = Quaternion.AngleAxis(Random.Range(-10.0f, 10.0f), Vector3.forward);
+        m_rigidbody.velocity = qr * m_rigidbody.velocity;
     }
 }
