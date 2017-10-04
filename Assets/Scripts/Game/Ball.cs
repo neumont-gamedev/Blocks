@@ -64,7 +64,12 @@ public class Ball : FiniteStateMachine
         m_audioSource.Play();
 
         // randomize bounce
-        Quaternion qr = Quaternion.AngleAxis(Random.Range(-10.0f, 10.0f), Vector3.forward);
-        m_rigidbody.velocity = qr * m_rigidbody.velocity;
+        // check if the ball is moving straight up or straight across, if so set a random offset angle to the velocity
+        if (Mathf.Abs(Vector3.Dot(Vector3.up, m_rigidbody.velocity.normalized)) > 0.9f || Mathf.Abs(Vector3.Dot(Vector3.right, m_rigidbody.velocity.normalized)) > 0.9f)
+        {
+            float angle = Random.Range(10.0f, 20.0f) * Mathf.Sign(Random.Range(-1.0f, 1.0f));
+            Quaternion qr = Quaternion.AngleAxis(angle, Vector3.forward);
+            m_rigidbody.velocity = qr * m_rigidbody.velocity;
+        }
     }
 }
